@@ -38,8 +38,8 @@ class Api::CommentsController < Api::BaseController
     snippet = Google::Apis::YoutubeV3::LiveChatMessageSnippet.new
     message.snippet = snippet
 
-    snippet.live_chat_id         = live_chat_id
     snippet.type                 = 'textMessageEvent'
+    snippet.live_chat_id         = live_chat_id
     snippet.text_message_details = { message_text: message_text }
 
     comment = @service.insert_live_chat_message('snippet', message)
