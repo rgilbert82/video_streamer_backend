@@ -79,29 +79,37 @@ class Api::CommentsController < Api::BaseController
   end
 
   def create_comment_record(comment)
-    # first create a user record if the comment author is not in the DB yet
-    user_records = User.where(id: comment.author_details.channel_id)
-    create_user_record(comment.author_details) if user_records.empty?
+    begin
+      # first create a user record if the comment author is not in the DB yet
+      user_records = User.where(id: comment.author_details.channel_id)
+      create_user_record(comment.author_details) if user_records.empty?
 
-    # then create the comment
-    comment_id  = comment.id.gsub(/[^A-Za-z0-9]/, '')
-    new_comment = Comment.create(
-      id:           comment_id,
-      chat_id:      params[:id],
-      user_id:      comment.author_details.channel_id,
-      message:      comment.snippet.display_message,
-      published_at: comment.snippet.published_at
-    )
+      # then create the comment
+      comment_id  = comment.id.gsub(/[^A-Za-z0-9]/, '')
+      new_comment = Comment.create(
+        id:           comment_id,
+        chat_id:      params[:id],
+        user_id:      comment.author_details.channel_id,
+        message:      comment.snippet.display_message,
+        published_at: comment.snippet.published_at
+      )
 
-    new_comment
+      new_comment
+    rescue
+      nil
+    end
   end
 
   def create_user_record(user)
-    User.create(
-      id:          user.channel_id,
-      username:    user.display_name,
-      image_url:   user.profile_image_url,
-      youtube_url: user.channel_url
-    )
+    begin
+      User.create(
+        id:          user.channel_id,
+        username:    user.display_name,
+        image_url:   user.profile_image_url,
+        youtube_url: user.channel_url
+      )
+    rescue
+      nil
+    end
   end
 end
