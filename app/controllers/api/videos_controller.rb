@@ -18,10 +18,10 @@ class Api::VideosController < Api::BaseController
   def stats
     video = Video.find(params[:id])
     stats = {
-      video_age:         get_video_age(video),
-      stream_age:        get_stream_age(video),
-      total_comments:    get_total_comments(video),
-      comments_per_hour: get_comments_per_hour(video)
+      video_age:         video.get_video_age,
+      stream_age:        video.get_stream_age,
+      total_comments:    video.get_total_comments,
+      comments_per_hour: video.get_comments_per_hour
     }
 
     render json: stats
@@ -86,46 +86,5 @@ class Api::VideosController < Api::BaseController
     end
 
     new_video
-  end
-
-  # Video stats methods
-
-  def get_video_age(video)
-    video_time = Time.parse(video.published_at)
-    ((Time.now - video_time) / 3600).round
-  end
-
-  def get_stream_age(video)
-    if get_total_comments(video) > 0
-      comment = video.chats.first.comments.order('created_at').first
-      first   = Time.parse(comment.published_at)
-      ((Time.now - first) / 3600).round
-    else
-      ((Time.now - video.created_at) / 3600).round
-    end
-  end
-
-  def get_total_comments(video)
-    chat = video.chats.first
-    if chat
-      chat.comments.count
-    else
-      0
-    end
-  end
-
-  def get_comments_per_hour(video)
-    chat  = video.chats.first
-    total = get_total_comments(video)
-
-    if total > 0
-      comments = chat.comments.order('created_at')
-      earliest = Time.parse(comments.first.published_at)
-      latest   = Time.parse(comments.last.published_at)
-      hours    = (latest - earliest) / 3600
-      (total / hours).round(2)
-    else
-      0
-    end
   end
 end
