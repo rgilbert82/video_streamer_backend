@@ -1,28 +1,6 @@
 class Api::CommentsController < Api::BaseController
   before_action :get_service
 
-  def show
-    yt_comments     = fetch_comments_data_from_youtube
-    new_comments    = collect_new_comments(yt_comments.items)
-    next_page_token = yt_comments.next_page_token
-    poll_interval   = yt_comments.polling_interval_millis || 3000
-
-    Chat.find(params[:id]).update_column(:page_token, next_page_token)
-
-    if params[:updating_list]      # return new comments since last update only
-      render json: {
-        comments:      get_comments_with_user(new_comments),
-        poll_interval: poll_interval
-      }
-    else                           # return the 30 most recent comments
-      comments = Comment.where(chat_id: params[:id]).limit(30).order('created_at desc').reverse
-      render json: {
-        comments:      get_comments_with_user(comments),
-        poll_interval: poll_interval
-      }
-    end
-  end
-
   def create
     message_text = params['message']
     live_chat_id = params['chat_id']
@@ -45,6 +23,28 @@ class Api::CommentsController < Api::BaseController
     comment = @service.insert_live_chat_message('snippet', message)
 
     render json: comment
+  end
+
+  def chat_index
+    yt_data         = fetch_comments_data_from_youtube
+    new_comments    = collect_new_comments(yt_data.items)
+    next_page_token = yt_data.next_page_token
+    poll_interval   = yt_data.polling_interval_millis || 3000
+
+    Chat.find(params[:id]).update_column(:page_token, next_page_token)
+
+    if params[:updating_list]      # return new comments since last update only
+      render json: {
+        comments:      get_comments_with_user(new_comments),
+        poll_interval: poll_interval
+      }
+    else                           # return the 30 most recent comments
+      comments = Comment.where(chat_id: params[:id]).limit(30).order('created_at desc').reverse
+      render json: {
+        comments:      get_comments_with_user(comments),
+        poll_interval: poll_interval
+      }
+    end
   end
 
   private
