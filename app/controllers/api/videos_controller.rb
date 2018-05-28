@@ -2,8 +2,8 @@ class Api::VideosController < Api::BaseController
   before_action :get_service
 
   def index
-    yt_videos = fetch_videos_from_youtube
-    videos    = collect_videos(yt_videos.items)
+    yt_channel = fetch_channel_data_from_youtube
+    videos     = collect_videos(yt_channel.items)
 
     render json: videos
   end
@@ -29,7 +29,7 @@ class Api::VideosController < Api::BaseController
 
   private
 
-  def fetch_videos_from_youtube
+  def fetch_channel_data_from_youtube
     @service.list_searches(
       'snippet',
       channel_id:  ENV['CHANNEL_ID'],
@@ -39,7 +39,7 @@ class Api::VideosController < Api::BaseController
     )
   end
 
-  def fetch_video_from_youtube(video_id)
+  def fetch_video_data_from_youtube(video_id)
     @service.list_videos(
       'snippet,contentDetails,statistics,liveStreamingDetails',
       { id: video_id }
@@ -66,7 +66,7 @@ class Api::VideosController < Api::BaseController
   end
 
   def create_video_record(video_id)
-    video     = fetch_video_from_youtube(video_id)
+    video     = fetch_video_data_from_youtube(video_id)
     chat_id   = video.live_streaming_details.active_live_chat_id
 
     new_video = Video.create(

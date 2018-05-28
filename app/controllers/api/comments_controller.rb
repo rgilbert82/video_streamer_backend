@@ -2,7 +2,7 @@ class Api::CommentsController < Api::BaseController
   before_action :get_service
 
   def show
-    yt_comments     = fetch_comments_from_youtube
+    yt_comments     = fetch_comments_data_from_youtube
     new_comments    = collect_new_comments(yt_comments.items)
     next_page_token = yt_comments.next_page_token
     poll_interval   = yt_comments.polling_interval_millis || 3000
@@ -11,14 +11,14 @@ class Api::CommentsController < Api::BaseController
 
     if params[:updating_list]      # return new comments since last update only
       render json: {
-        poll_interval: poll_interval,
-        comments: comments_with_user(new_comments)
+        comments:      get_comments_with_user(new_comments),
+        poll_interval: poll_interval
       }
     else                           # return the 30 most recent comments
       comments = Comment.where(chat_id: params[:id]).limit(30).order('created_at desc').reverse
       render json: {
-        poll_interval: poll_interval,
-        comments: comments_with_user(comments)
+        comments:      get_comments_with_user(comments),
+        poll_interval: poll_interval
       }
     end
   end
@@ -49,7 +49,7 @@ class Api::CommentsController < Api::BaseController
 
   private
 
-  def fetch_comments_from_youtube
+  def fetch_comments_data_from_youtube
     @service.list_live_chat_messages(
       params[:id],
       'snippet,authorDetails',
@@ -67,12 +67,12 @@ class Api::CommentsController < Api::BaseController
     comment_id = comment.id.gsub(/[^A-Za-z0-9]/, '')
     records    = Comment.where(id: comment_id)
 
-    if records.empty?
+    if records.empty? && comment.author_details
       create_comment_record(comment)
     end
   end
 
-  def comments_with_user(comments)
+  def get_comments_with_user(comments)
     comments.map do |comment|
       { comment: comment, user: comment.user }
     end
