@@ -1,24 +1,15 @@
-# README
+# Video Streamer back-end
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This is the back-end for my Live Streaming Video & Chat app. Made with Rails 5.
+Features include:
 
-Things you may want to cover:
+* Users can login with their Google account via OAuth.
+* Users can watch live streaming videos, courtesy of YouTube.
+* Video chats update in realtime.
+* Logged in users can add messages to the YouTube chat stream.
 
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+------
+[Front-end Github Repo](https://github.com/rgilbert82/video_streamer_frontend)
+------
+[Heroku link](https://rg-streamer.herokuapp.com/)
+------
