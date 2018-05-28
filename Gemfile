@@ -8,7 +8,6 @@ end
 
 
 gem 'rails', '~> 5.0.1'
-gem 'sqlite3'
 gem 'puma', '~> 3.0'
 gem 'rack-cors'
 gem 'google-api-client'
@@ -20,6 +19,7 @@ group :development, :test do
   gem 'pry'
   gem 'pry-nav'
   gem 'dotenv-rails'
+  gem 'sqlite3'
 end
 
 group :development do
