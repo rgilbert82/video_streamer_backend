@@ -63,13 +63,13 @@ class Api::CommentsController < Api::BaseController
 
   def collect_new_comments(yt_comments)
     comments = yt_comments.map do |c|
-      fetch_new_comment_from_db(c)
+      create_records_for_comment_if_new(c)
     end
 
     comments.reject(&:nil?)
   end
 
-  def fetch_new_comment_from_db(comment)
+  def create_records_for_comment_if_new(comment)
     comment_id = comment.id.gsub(/[^A-Za-z0-9]/, '')
     records    = Comment.where(id: comment_id)
 
