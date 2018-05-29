@@ -31,7 +31,7 @@ class Api::CommentsController < Api::BaseController
 
     Chat.find(params[:id]).update_column(:page_token, yt_data.next_page_token)
 
-    # load 30 for initial comment load, else just load new comments
+    # return 30 for initial comment load, else just load new comments
     new_comments = fetch_initial_comments_load unless params[:updating_list]
 
     render json: {
@@ -97,9 +97,8 @@ class Api::CommentsController < Api::BaseController
   end
 
   def create_comment_record(comment)
-    comment_id = comment.id.gsub(/[^A-Za-z0-9]/, '')
     Comment.create(
-      id:           comment_id,
+      id:           comment.id.gsub(/[^A-Za-z0-9]/, ''),
       chat_id:      params[:id],
       user_id:      comment.author_details.channel_id,
       message:      comment.snippet.display_message,

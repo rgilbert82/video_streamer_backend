@@ -10,7 +10,7 @@ class Api::VideosController < Api::BaseController
 
   def show
     video = fetch_video_from_db(params[:id])
-    chat  = Chat.where(video_id: params[:id])[0]
+    chat  = video.chats.first
 
     render json: { video: video, chat: chat }
   end
