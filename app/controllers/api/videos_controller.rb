@@ -18,10 +18,10 @@ class Api::VideosController < Api::BaseController
   def stats
     video = Video.find(params[:id])
     stats = {
-      video_age:         video.get_video_age,
-      stream_age:        video.get_stream_age,
-      total_comments:    video.get_total_comments,
-      comments_per_hour: video.get_comments_per_hour
+      video_age:         video.video_age,
+      stream_age:        video.stream_age,
+      total_comments:    video.total_comments,
+      comments_per_hour: video.comments_per_hour
     }
 
     render json: stats
@@ -50,7 +50,7 @@ class Api::VideosController < Api::BaseController
     yt_videos.map do |v|
       {
         content:      fetch_video_from_db(v.id.video_id),
-        chat_enabled: Chat.where(video_id: v.id.video_id).length > 0
+        chat_enabled: !Chat.where(video_id: v.id.video_id).empty?
       }
     end
   end
@@ -59,17 +59,24 @@ class Api::VideosController < Api::BaseController
     records = Video.where(id: video_id)
 
     if records.empty?
-      create_video_record(video_id)
+      create_video_and_chat_records(video_id)
     else
       records[0]
     end
   end
 
-  def create_video_record(video_id)
+  def create_video_and_chat_records(video_id)
     video     = fetch_video_data_from_youtube(video_id)
     chat_id   = video.live_streaming_details.active_live_chat_id
 
-    new_video = Video.create(
+    new_video = create_video_record(video)
+    create_chat_record(chat_id, video_id) if chat_id
+
+    new_video
+  end
+
+  def create_video_record(video)
+    Video.create(
       id:           video.id,
       channel_id:   video.snippet.channel_id,
       title:        video.snippet.title,
@@ -77,14 +84,12 @@ class Api::VideosController < Api::BaseController
       description:  video.snippet.description,
       published_at: video.snippet.published_at
     )
+  end
 
-    if chat_id
-      Chat.create(
-        id:       chat_id,
-        video_id: video_id
-      )
-    end
-
-    new_video
+  def create_chat_record(chat_id, video_id)
+    Chat.create(
+      id:       chat_id,
+      video_id: video_id
+    )
   end
 end
