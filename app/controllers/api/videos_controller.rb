@@ -9,10 +9,10 @@ class Api::VideosController < Api::BaseController
   end
 
   def show
-    video = fetch_video_from_db(params[:id])
-    chat  = video.chats.first
+    video_id  = params[:id]
+    video_obj = fetch_video_from_db(video_id)
 
-    render json: { video: video, chat: chat }
+    render json: { video: video_obj.video, chat: video_obj.chat }
   end
 
   def stats
@@ -48,29 +48,38 @@ class Api::VideosController < Api::BaseController
 
   def collect_videos(yt_videos)
     yt_videos.map do |v|
+      video_obj = fetch_video_from_db(v.id.video_id)
+
       {
-        content:      fetch_video_from_db(v.id.video_id),
-        chat_enabled: !Chat.where(video_id: v.id.video_id).empty?
+        content:      video_obj.video,
+        chat_enabled: !!video_obj.chat
       }
     end
   end
 
   def fetch_video_from_db(video_id)
-    records = Video.where(id: video_id)
+    yt_video = fetch_video_data_from_youtube(video_id)
+    chat_id  = yt_video.live_streaming_details.active_live_chat_id
+    records  = Video.where(id: video_id)
 
     if records.empty?
-      create_video_and_chat_records(video_id)
+      video = create_video_and_chat_records(yt_video, chat_id)
+      chat  = video.chats.first
     else
-      records[0]
+      video = records[0]
+      chat  = video.chats.where(id: chat_id).first
+
+      if chat_id && !chat
+        chat = create_chat_record(chat_id, video_id)
+      end
     end
+
+    { video: video, chat: chat }
   end
 
-  def create_video_and_chat_records(video_id)
-    video     = fetch_video_data_from_youtube(video_id)
-    chat_id   = video.live_streaming_details.active_live_chat_id
-
+  def create_video_and_chat_records(video, chat_id)
     new_video = create_video_record(video)
-    create_chat_record(chat_id, video_id) if chat_id
+    create_chat_record(chat_id, new_video.id) if chat_id
 
     new_video
   end
