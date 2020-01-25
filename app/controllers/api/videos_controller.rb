@@ -12,7 +12,7 @@ class Api::VideosController < Api::BaseController
     video_id  = params[:id]
     video_obj = fetch_video_from_db(video_id)
 
-    render json: { video: video_obj.video, chat: video_obj.chat }
+    render json: { video: video_obj[:video], chat: video_obj[:chat] }
   end
 
   def stats
@@ -51,8 +51,8 @@ class Api::VideosController < Api::BaseController
       video_obj = fetch_video_from_db(v.id.video_id)
 
       {
-        content:      video_obj.video,
-        chat_enabled: !!video_obj.chat
+        content:        video_obj[:video],
+        chat_enabled: !!video_obj[:chat]
       }
     end
   end
