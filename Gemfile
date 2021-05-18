@@ -8,7 +8,7 @@ end
 
 
 gem 'rails', '~> 5.0.1'
-gem 'puma', '~> 3.0'
+gem 'puma', '~> 4.3'
 gem 'rack-cors'
 gem 'google-api-client'
 gem 'jwt'
